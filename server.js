@@ -1,5 +1,5 @@
 'use strict';
-
+var arrayObject = [];
 let express = require('express');
 
 const cors = require('cors');
@@ -14,6 +14,8 @@ require('dotenv').config();
 
 const PORT = process.env.PORT;
 app.get('/location', handleLocation);
+app.get('/weather',handleWeather);
+
 
 
 //  handle location 
@@ -24,7 +26,29 @@ function handleLocation(req, res) {
     res.status(200).send(locationData);
 
 
+
 }
+// handle weather 
+
+function handleWeather(req,res){
+
+    let requset = req.query;
+    let weatherData = getWeatherDeta(requset);
+    res.status(200).send(weatherData);
+}
+
+function getWeatherDeta (){
+    let weatherData = require ('./data/weather.json');
+    for (let index = 0; index < weatherData.data.length; index++) {
+        let time = weatherData.data[index].valid_date;
+        let forecast = weatherData.data[index].weather.description;
+        let weatherObject = new CityWeather (forecast,time);
+        arrayObject.push(weatherObject);
+        return arrayObject;
+    };
+    
+}
+
 
 function getLocationData(searchQuery) {
     let locationData = require('./data/location.json');
@@ -34,15 +58,22 @@ function getLocationData(searchQuery) {
     let responseObject = new CityLocation(searchQuery,displayName,latatude,longatude);
     return responseObject;
 
-}function CityLocation (searchQuery,displayName,lot,lon){
+}
+
+
+function CityLocation (searchQuery,displayName,lot,lon){
     this.search_query = searchQuery;
     this.formatted_query =displayName;
     this.latitude = lon;
-    this.longitude = lot;  
+    this.longitude = lot;
+}
+
+function CityWeather (forecast,time){
+    this.forecast = forecast;
+    this.time = time;
 }
 app.listen(PORT, () => {
     console.log('the app is listen on port' + PORT);
 });
 
-
-
+console.log(arrayObject);
