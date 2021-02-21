@@ -5,30 +5,53 @@
 **Version**: 1.0.0 (increment the patch/fix version number if you make more commits past your first submission)
 
 ## Overview
-<!-- Provide a high level overview of what this application is and why you are building it, beyond the fact that it's an assignment for this class. (i.e. What's your problem domain?) -->
+
+This web page is for showing the weather and location for data that we have we build this page to know how we can use node and start working on it.
 
 ## Getting Started
-<!-- What are the steps that a user must take in order to build this app on their own machine and get it running? -->
+1. create js file
+2. use npm init in termenal and put some inoremation
+3. install experess  by using npm install experess in termenal  then check in pakage.json that we have exepress
+4. let express requre thing 
+5. then run the express 
+6. add listen
+7. add env 
+8. install dotenv 
+9. get the data and show it.
 
 ## Architecture
-<!-- Provide a detailed description of the application design. What technologies (languages, libraries, etc) you're using, and any other relevant design information. -->
+we are using Javascript,node,express,cors.
 
 ## Change Log
-<!-- Use this area to document the iterative changes made to your application as each feature is successfully implemented. Use time stamps. Here's an examples:
-
-01-01-2001 4:59pm - Application now has a fully-functional express server, with a GET route for the location resource.
+21/02/2021 3:30  adding location to webpage using link to the local host
+21/02/2021 5:00  almost finish add the weather code 
+21/02/2021 8:30   finish adding weather to the webpage
+21/02/2021 9:00    start working to change the dete to outher form.
 
 ## Credits and Collaborations
-<!-- Give credit (and a link) to other people or resources that helped you build this application. -->
--->
+
+Ahmad Al-mohammed (TA)
+Hadi Aji  (TA) 
+ibrahim aljaber (student.)
 
 
-Number and name of feature: ________________________________
+>Number and name of feature: (1)
 
-Estimate of time needed to complete: _____
+>Estimate of time needed to complete: 1:30
 
-Start time: _____
+>Start time: 1:00
 
-Finish time: _____
+>Finish time: 2:45
 
-Actual time needed to complete: _____
+>Actual time needed to complete: 1:45
+
+
+Number and name of feature: (2)
+
+Estimate of time needed to complete: 2:00
+
+Start time: 3:00
+
+Finish time: 5
+
+Actual time needed to complete: 2:00
