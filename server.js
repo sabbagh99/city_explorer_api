@@ -78,7 +78,7 @@ function getLocationData(searchQuery) {
         limit: 1,
         format: 'json'
       };
-      let url = 'https://us1.locationiq.com/v1/search.php';
+      let url = 'https://us1.locationiq.com/v1/search.php?';
      return superagent.get(url).query(query).then(locationData=>{
 
     try {
