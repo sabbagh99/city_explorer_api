@@ -1,16 +1,14 @@
 'use strict';
 var arrayObject = [];
-let express = require('express');
 
+let express = require('express');
 const cors = require('cors');
 
 
 let app = express();
 app.use(cors());
-
-
-
 require('dotenv').config();
+
 
 const PORT = process.env.PORT;
 app.get('/location', handleLocation);
@@ -40,12 +38,21 @@ function handleWeather(req,res){
 function getWeatherDeta (){
     let weatherData = require ('./data/weather.json');
     for (let index = 0; index < weatherData.data.length; index++) {
-        let time = weatherData.data[index].valid_date;
+         let time = new Date (weatherData.data[index].valid_date);
+         const event = time;
+         const option = {weekday:'short',year:'numeric',month:'short',day:'numeric'}
+         let chrTime = event.toLocaleDateString('en-US',option);
+        // let newDate = new Date (time);
+        // let newDate = new Date ('2020,04,13');
+
+
+
         let forecast = weatherData.data[index].weather.description;
-        let weatherObject = new CityWeather (forecast,time);
+        let weatherObject = new CityWeather (forecast,chrTime);
         arrayObject.push(weatherObject);
-        return arrayObject;
+        
     };
+    return arrayObject;
     
 }
 
@@ -76,4 +83,3 @@ app.listen(PORT, () => {
     console.log('the app is listen on port' + PORT);
 });
 
-console.log(arrayObject);
