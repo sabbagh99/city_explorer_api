@@ -25,7 +25,7 @@ function handleLocation(req, res) {
     // getLocationData(searchQuery);
    getLocationData(searchQuery).then(locationData=>{
        res.status(200).send(locationData);
-   })
+   });
     
 
 
@@ -56,7 +56,7 @@ function getWeatherDeta() {
         weatherData.data.map(element => {
             let time = new Date(element.valid_date);
             const event = time;
-            const option = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }
+            const option = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
             let chrTime = event.toLocaleDateString('en-US', option);
 
             let forecast = element.weather.description;
@@ -78,7 +78,7 @@ function getLocationData(searchQuery) {
         limit: 1,
         format: 'json'
       };
-      let url = 'https://us1.locationiq.com/v1/search.php?';
+      let url = 'https://us1.locationiq.com/v1/search.php';
      return superagent.get(url).query(query).then(locationData=>{
 
     try {
