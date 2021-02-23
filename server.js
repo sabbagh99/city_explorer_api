@@ -3,7 +3,7 @@
 const express = require('express');
 const cors = require('cors');
 const superagent = require('superagent');
-// const pg = require('pg');
+const pg = require('pg');
 
 
 
@@ -11,7 +11,7 @@ const superagent = require('superagent');
 let app = express();
 app.use(cors());
 require('dotenv').config();
-// const client = new pg.Client(process.env.DATABASE_URL);
+const client = new pg.Client(process.env.DATABASE_URL);
 
 
 const PORT = process.env.PORT;
@@ -145,7 +145,7 @@ function getParkData(req, res) {
         let url = value.url;
         let parksObject = new CityPark(name, address, fee, description, url);
         parksArray.push(parksObject);
-        console.log(name,address,fee,description,url);
+        console.log(name, address, fee, description, url);
       });
       return parksArray;
     } catch (error) {
@@ -177,6 +177,10 @@ function CityPark(name, address, fee, description, url) {
   this.url = url;
 }
 //===================================================Parks=========================
-app.listen(PORT, () => {
-  console.log('the app is listening to port ' + PORT);
+client.connect().then(()=>{
+  app.listen(PORT, ()=>{
+    console.log('the app is listening to port '+ PORT);
+  });
+}).catch(error =>{
+  console.log('an error occurred while connecting to database '+error);
 });
