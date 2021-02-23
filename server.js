@@ -1,8 +1,9 @@
 'use strict';
 
-let express = require('express');
+const express = require('express');
 const cors = require('cors');
-let superagent = require('superagent');
+const superagent = require('superagent');
+const pg = require('pg');
 
 
 
@@ -10,6 +11,7 @@ let superagent = require('superagent');
 let app = express();
 app.use(cors());
 require('dotenv').config();
+const client = new pg.Client(process.env.DATABASE_URL);
 
 
 const PORT = process.env.PORT;
@@ -20,7 +22,7 @@ app.get('*', handleerror);
 
 
 
-//  handle location
+//  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>handle location<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 function handleLocation(req, res) {
 
   let searchQuery = req.query.city;
@@ -30,18 +32,16 @@ function handleLocation(req, res) {
   });
 
 }
-// handle weather
+// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>handle weather<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 function handleWeather(req, res) {
-  // let requset = req.query;
-
   getWeatherDeta(req, res).then(data => {
     res.status(200).send(data);
   });
 }
 
 
-// handle 404 function
+// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>handle 404 function<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 function handleerror(req, res) {
   res.status(404).send('Sorry, the page you are trying to access does not exist....');
@@ -58,12 +58,12 @@ function handleerror(req, res) {
 //=============Get wether data===============
 
 function getWeatherDeta(req, res) {
+  console.log(req.query);
   const query = {
 
     key: process.env.WEATHER_API_KEY,
-    city: req.query.city
+    city: req.query.search_query
   };
-    // console.log(query);
 
   let url = 'http://api.weatherbit.io/v2.0/forecast/daily';
   return superagent.get(url).query(query).then(weatherData => {
@@ -78,7 +78,7 @@ function getWeatherDeta(req, res) {
         arrayObject.push(weatherObject);
       });
       return arrayObject;
-    }catch (error) {
+    } catch (error) {
       res.status(500).send('Sorry, an error occured ..' + error);
     }
   }).catch(error => {
@@ -109,7 +109,6 @@ function getLocationData(searchQuery) {
   let url = 'https://us1.locationiq.com/v1/search.php';
   return superagent.get(url).query(query).then(locationData => {
     try {
-      // console.log(locationData.body);
       let longatude = locationData.body[0].lon;
       let latatude = locationData.body[0].lat;
       let displayName = locationData.body[0].display_name;
