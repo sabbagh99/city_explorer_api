@@ -1,6 +1,8 @@
-CREATE TABLE IF NOT EXISTS city_info(
+DROP TABLE IF EXISTS city_info;
+CREATE TABLE city_info(
     id SERIAL PRIMARY KEY NOT NULL,
     city_name VARCHAR(265) NOT NULL,
     lon VARCHAR(265) NOT NULL,
-    lat VARCHAR(265) NOT NULL
+    lat VARCHAR(265) NOT NULL,
+    formatted_query VARCHAR(265) NOT NULL
 );

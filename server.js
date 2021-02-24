@@ -58,7 +58,6 @@ function handlePark(req, res) {
 //=============Get wether data===============
 
 function getWeatherDeta(req, res) {
-  console.log(req.query);
   const query = {
 
     key: process.env.WEATHER_API_KEY,
@@ -100,38 +99,56 @@ function turndate(day) {
 //====================Get location Data===============================
 
 function getLocationData(searchQuery, res) {
-  const query = {
-    key: process.env.GEOCODE_API_KEY,
-    q: searchQuery,
-    limit: 1,
-    format: 'json'
-  };
-
-  // let checkExisit = `SELECT * FROM city_info WHERE city_name =($1)`
-  let url = 'https://us1.locationiq.com/v1/search.php';
-  return superagent.get(url).query(query).then(locationData => {
-    try {
-      let longatude = locationData.body[0].lon;
-      let latatude = locationData.body[0].lat;
-      let displayName = locationData.body[0].display_name;
-      let responseObject = new CityLocation(searchQuery, displayName, latatude, longatude);
-      return responseObject;
+  let checkExisit = 'SELECT * FROM city_info WHERE city_name=$1';
+  let safeValues = [searchQuery];
+  return client.query(checkExisit, safeValues).then(locationData => {
+    if (locationData.rowCount !== 0) {
+      let databaseRecord = locationData.rows[0];
+      let locationObject = new CityLocation(databaseRecord.city_name, databaseRecord.formatted_query, databaseRecord.lat, databaseRecord.lon);
+      console.log(locationObject);
+      return locationObject;
+      
     }
-    catch (error) {
-      res.status(500).send('Sorry, an error occured ..' + error);
+    else {
+      const query = {
+        key: process.env.GEOCODE_API_KEY,
+        q: searchQuery,
+        limit: 1,
+        format: 'json'
+      };
+
+      let url = 'https://us1.locationiq.com/v1/search.php';
+      return superagent.get(url).query(query).then(locationData => {
+        try {
+          let longatude = locationData.body[0].lon;
+          let latatude = locationData.body[0].lat;
+          let displayName = locationData.body[0].display_name;
+
+          let responseObject = new CityLocation(searchQuery, displayName, latatude, longatude);
+          let dbQuery = `INSERT INTO city_info(city_name, lon,lat,formatted_query) VALUES ($1,$2,$3,$4)RETURNING *`;
+          let safeValues = [searchQuery, longatude, latatude, displayName];
+
+          client.query(dbQuery, safeValues).then(() => {
+            console.log('data returned back from db ');
+          }).catch(error => {
+            console.log('an error occurred ' + error);
+          });
+
+          return responseObject;
+
+        }
+        catch (error) {
+          res.status(500).send('Sorry, an error occured ..' + error);
+        }
+
+
+      }).catch(error => {
+        res.status(500).send('There was an error getting data from API ' + error);
+      });
     }
-    let dbQuery = `INSERT INTO city_info(city_name, lon,lat) VALUES ($1,$2,$3)RETURNING *`;
-    let safeValues = [city,lon,lat];
-
-    client.query(dbQuery, safeValues).then(data => {
-      console.log('data returned back from db ', data.rows);
-    }).catch(error => {
-      console.log('an error occurred ' + error);
-    });
-
   }).catch(error => {
-    res.status(500).send('There was an error getting data from API ' + error);
-  });
+    res.status(500).send('location ' + error);
+  })
 
 }
 
@@ -139,24 +156,22 @@ function getLocationData(searchQuery, res) {
 function getParkData(req, res) {
   const query = {
 
-    key: process.env.PARKS_API_KEY,
-    city: req.query.search_query
+    api_key: process.env.PARKS_API_KEY,
+    p: req.query.search_query
   };
 
   let url = 'https://developer.nps.gov/api/v1/parks';
   return superagent.get(url).query(query).then(parkData => {
     try {
       let parksArray = [];
-      console.log(parksArray);
       parkData.body.data.map(value => {
         let name = value.fullName;
         let address = (value.addresses[0].line1);
-        let fee = value.entranceFees[0].cost;
+        let fee = value.entranceFees[0];
         let description = value.description;
         let url = value.url;
         let parksObject = new CityPark(name, address, fee, description, url);
         parksArray.push(parksObject);
-        console.log(name, address, fee, description, url);
       });
       return parksArray;
     } catch (error) {
@@ -168,11 +183,11 @@ function getParkData(req, res) {
 
 }
 
-function CityLocation(searchQuery, displayName, lot, lon) {
-  this.search_query = searchQuery;
+function CityLocation(locationData, displayName, latatude, longatude) {
+  this.search_query = locationData;
   this.formatted_query = displayName;
-  this.latitude = lon;
-  this.longitude = lot;
+  this.latitude = latatude;
+  this.longitude = longatude;
 }
 
 function CityWeather(forecast, time) {
