@@ -106,6 +106,8 @@ function getLocationData(searchQuery, res) {
     limit: 1,
     format: 'json'
   };
+
+  // let checkExisit = `SELECT * FROM city_info WHERE city_name =($1)`
   let url = 'https://us1.locationiq.com/v1/search.php';
   return superagent.get(url).query(query).then(locationData => {
     try {
@@ -118,6 +120,15 @@ function getLocationData(searchQuery, res) {
     catch (error) {
       res.status(500).send('Sorry, an error occured ..' + error);
     }
+    let dbQuery = `INSERT INTO city_info(city_name, lon,lat) VALUES ($1,$2,$3)RETURNING *`;
+    let safeValues = [city,lon,lat];
+
+    client.query(dbQuery, safeValues).then(data => {
+      console.log('data returned back from db ', data.rows);
+    }).catch(error => {
+      console.log('an error occurred ' + error);
+    });
+
   }).catch(error => {
     res.status(500).send('There was an error getting data from API ' + error);
   });
@@ -177,10 +188,10 @@ function CityPark(name, address, fee, description, url) {
   this.url = url;
 }
 //===================================================Parks=========================
-client.connect().then(()=>{
-  app.listen(PORT, ()=>{
-    console.log('the app is listening to port '+ PORT);
+client.connect().then(() => {
+  app.listen(PORT, () => {
+    console.log('the app is listening to port ' + PORT);
   });
-}).catch(error =>{
-  console.log('an error occurred while connecting to database '+error);
+}).catch(error => {
+  console.log('an error occurred while connecting to database ' + error);
 });
