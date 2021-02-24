@@ -18,6 +18,7 @@ const PORT = process.env.PORT;
 app.get('/location', handleLocation);
 app.get('/weather', handleWeather);
 app.get('/parks', handlePark);
+app.get('/movies', handleMovie);
 app.get('*', handleerror);
 
 
@@ -55,6 +56,14 @@ function handlePark(req, res) {
 
 }
 
+//  handel movies 
+
+function handleMovie(req, res) {
+  getMovieData(req, res).then(movieData => {
+    res.status(200).send(movieData);
+  });
+}
+
 //=============Get wether data===============
 
 function getWeatherDeta(req, res) {
@@ -85,6 +94,43 @@ function getWeatherDeta(req, res) {
   });
 }
 
+//    getMovieData function 
+
+function getMovieData(req, res) {
+  const query = {
+    api_key: process.env.MOVIE_API_KEY,
+    query: req.query.search_query
+  };
+
+  let url = 'https://api.themoviedb.org/3/search/movie';
+  return superagent.get(url).query(query).then(movieData => {
+    try {
+      let arrayMovie = movieData.body.results.map(value => {
+        let titleMovie = value.title;
+        let overviewMovie = value.overview;
+        let averageVotes = value.vote_avarage;
+        let totalVotes = value.vote_count;
+        let imageUrl = value.poster_path;
+        let popularityMovie = value.popularity;
+        let releasedOn = value.release_date;
+        let movieObject = new CityMovie(titleMovie, overviewMovie, averageVotes, totalVotes, imageUrl, popularityMovie, releasedOn);
+        // arrayMovie.push(movieObject);
+        // return arrayMovie;
+        return movieObject;
+      });
+      console.log(arrayMovie);
+      res.status(200).send(arrayMovie);
+    } catch (erorr) {
+      console.log('erorr in geting movie info' + erorr);
+    }
+
+  }).catch(error => {
+    res.status(500).send('There was an error getting data from API ' + error);
+  });
+}
+
+
+
 
 //=========================turn date=============
 
@@ -105,9 +151,8 @@ function getLocationData(searchQuery, res) {
     if (locationData.rowCount !== 0) {
       let databaseRecord = locationData.rows[0];
       let locationObject = new CityLocation(databaseRecord.city_name, databaseRecord.formatted_query, databaseRecord.lat, databaseRecord.lon);
-      console.log(locationObject);
       return locationObject;
-      
+
     }
     else {
       const query = {
@@ -148,7 +193,7 @@ function getLocationData(searchQuery, res) {
     }
   }).catch(error => {
     res.status(500).send('location ' + error);
-  })
+  });
 
 }
 
@@ -183,6 +228,15 @@ function getParkData(req, res) {
 
 }
 
+function CityMovie(titleMovie, overviewMovie, averageVotes, totalVotes, imageUrl, popularityMovie, releasedOn) {
+  this.title = titleMovie;
+  this.overview = overviewMovie;
+  this.average_votes = averageVotes;
+  this.total_votes = totalVotes;
+  this.image_url = imageUrl;
+  this.popularity = popularityMovie;
+  this.released_on = releasedOn;
+}
 function CityLocation(locationData, displayName, latatude, longatude) {
   this.search_query = locationData;
   this.formatted_query = displayName;
