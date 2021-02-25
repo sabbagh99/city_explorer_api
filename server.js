@@ -11,7 +11,8 @@ const pg = require('pg');
 let app = express();
 app.use(cors());
 require('dotenv').config();
-const client = new pg.Client(process.env.DATABASE_URL);
+// const client = new pg.Client(process.env.DATABASE_URL);
+const client = new pg.Client({ connectionString: process.env.DATABASE_URL,   ssl: { rejectUnauthorized: false } });
 
 
 const PORT = process.env.PORT;
@@ -19,6 +20,7 @@ app.get('/location', handleLocation);
 app.get('/weather', handleWeather);
 app.get('/parks', handlePark);
 app.get('/movies', handleMovie);
+app.get('/yelp', handleYelp);
 app.get('*', handleerror);
 
 
@@ -64,6 +66,16 @@ function handleMovie(req, res) {
   });
 }
 
+//  handle yelp 
+
+function handleYelp(req, res) {
+  getYelpData(req, res).then(yelpData => {
+    res.status(200).send(yelpData);
+  });
+
+
+}
+
 //=============Get wether data===============
 
 function getWeatherDeta(req, res) {
@@ -105,12 +117,13 @@ function getMovieData(req, res) {
   let url = 'https://api.themoviedb.org/3/search/movie';
   return superagent.get(url).query(query).then(movieData => {
     try {
+      // console.log(movieData);
       let arrayMovie = movieData.body.results.map(value => {
         let titleMovie = value.title;
         let overviewMovie = value.overview;
         let averageVotes = value.vote_avarage;
         let totalVotes = value.vote_count;
-        let imageUrl = value.poster_path;
+        let imageUrl = 'https://image.tmdb.org/t/p/w500' +value.poster_path;
         let popularityMovie = value.popularity;
         let releasedOn = value.release_date;
         let movieObject = new CityMovie(titleMovie, overviewMovie, averageVotes, totalVotes, imageUrl, popularityMovie, releasedOn);
@@ -118,7 +131,7 @@ function getMovieData(req, res) {
         // return arrayMovie;
         return movieObject;
       });
-      console.log(arrayMovie);
+      // console.log(arrayMovie);
       res.status(200).send(arrayMovie);
     } catch (erorr) {
       console.log('erorr in geting movie info' + erorr);
@@ -129,6 +142,33 @@ function getMovieData(req, res) {
   });
 }
 
+function getYelpData(req, res) {
+  const query = {
+    location: req.query.search_query
+  };
+  // console.log(req.query.search_query);
+  let url = 'https://api.yelp.com/v3/businesses/search';
+  return superagent.get(url).set('Authorization', `Bearer ${process.env.YELP_API_KEY}`).query(query).then(yelpData => {
+    try {
+      // console.log(yelpData.body);
+      let arrayYelp = [];
+      yelpData.body.businesses.map(value => {
+        let nameYelp = value.name;
+        let image_urlYelp = value.image_url;
+        let priceYelp = value.price;
+        let ratingYelp = value.rating;
+        let urlYelp = value.url;
+        let yeloObject = new CityYelp(nameYelp, image_urlYelp, priceYelp, ratingYelp, urlYelp);
+        arrayYelp.push(yeloObject);
+      });
+      return arrayYelp;
+    } catch (error) {
+      res.status(500).send('Sorry, an error occured ..' + error);
+    }
+  }).catch(error => {
+    res.status(500).send('There was an error getting data from API ' + error);
+  });
+}
 
 
 
@@ -226,6 +266,14 @@ function getParkData(req, res) {
     res.status(500).send('There was an error getting data from API ' + error);
   });
 
+}
+
+function CityYelp(nameYelp, image_urlYelp, priceYelp, ratingYelp, urlYelp) {
+  this.name = nameYelp;
+  this.image_url = image_urlYelp;
+  this.price = priceYelp;
+  this.rating = ratingYelp;
+  this.url = urlYelp;
 }
 
 function CityMovie(titleMovie, overviewMovie, averageVotes, totalVotes, imageUrl, popularityMovie, releasedOn) {
